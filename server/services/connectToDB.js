@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const keys = require('../config/keys');
 
-const connectionString = keys.connectionStringMongoDB;
+const connectionString = keys.CONNECTION_STRING_MD;
 
 const connectToDB = async () => {
   try {
