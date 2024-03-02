@@ -11,11 +11,11 @@ Open [http://localhost:5000](http://localhost:5000) to view it in your browser.
 
 ### Packages
 
-nodemon: development dependency that restart sever application as file changes
-mongoose: helper library to work with mongoDB easily
-bcrypt: to hash the password(avoiding plain text)
-cors: middleware which enables server to determine which domains can access its resources
-jsonwebtoken: package to authenticate and authorize users using digitally signed token(securely)
+nodemon: development dependency that restart sever application as file changes\
+mongoose: helper library to work with mongoDB easily\
+bcrypt: to hash the password(avoiding plain text)\
+cors: middleware which enables server to determine which domains can access its resources\
+jsonwebtoken: package to authenticate and authorize users using digitally signed token(securely)\
 
 ## Client Scripts
 
