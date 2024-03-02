@@ -1,107 +1,109 @@
-const { promisify } = require('util');
+const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const User = require('../models/userModel');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
 const keys = require('../config/keys');
 
-const signToken = (id) => {
-  return jwt.sign({ id }, keys.JWT_SECRET, {
-    expiresIn: keys.JWT_EXPIRES_IN,
+const generateToken = (res, userId) => {
+  const token = jwt.sign({ userId }, keys.JWT_SECRET, {
+    expiresIn: '7d',
+  });
+
+  res.cookie('jwt', token, {
+    secure: keys.NODE_ENV !== 'development',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
 
-const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + keys.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-  };
+exports.signup = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
 
-  res.cookie('jwt', token, cookieOptions);
+  const userExists = await User.findOne({ email });
 
-  // Remove password from output
-  user.password = undefined;
+  if (userExists) {
+    res.status(400);
+    throw new Error('User already exists');
+  }
 
-  res.status(statusCode).json({
-    status: 'success',
-    token,
-    data: {
-      user,
-    },
-  });
-};
-
-exports.signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
+  const user = await User.create({
+    name,
+    email,
+    password,
   });
 
-  createSendToken(newUser, 201, res);
+  if (user) {
+    generateToken(res, user._id);
+
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    });
+  } else {
+    res.status(400);
+    throw new Error('Invalid user data');
+  }
 });
 
-exports.login = catchAsync(async (req, res, next) => {
+exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // 1) Check if email and password exist
-  if (!email || !password) {
-    return next(new AppError('Please provide email and password!', 400));
-  }
-  // 2) Check if user exists && password is correct
   const user = await User.findOne({ email });
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return next(new AppError('Incorrect email or password', 401));
-  }
+  if (user && (await user.matchPassword(password))) {
+    generateToken(res, user._id);
 
-  // 3) If everything ok, send token to client
-  createSendToken(user, 200, res);
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    });
+  } else {
+    res.status(401);
+    throw new Error('Invalid email or password');
+  }
 });
 
-exports.protect = catchAsync(async (req, res, next) => {
-  // 1) Getting token and check of it's there
+exports.logout = (req, res) => {
+  res.cookie('jwt', '', {
+    expires: new Date(0),
+  });
+  res.status(200).json({ message: 'Logged Out' });
+};
+
+exports.protected = asyncHandler(async (req, res, next) => {
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
+
+  token = req.cookies.jwt; // cookie-parser allows us to read cookie value
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, keys.JWT_SECRET);
+
+      req.user = await User.findById(decoded.userId).select('-password');
+
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(401);
+      throw new Error('Not authorized, token failed');
+    }
+  } else {
+    res.status(401);
+    throw new Error("Not authorized, You don/'t have token");
   }
+});
 
-  if (!token) {
-    return next(
-      new AppError('You are not logged in! Please log in to get access.', 401)
-    );
+exports.dashboard = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
   }
-
-  // 2) Verification token
-  const decoded = jwt.verify(token, keys.JWT_SECRET);
-
-  // 3) Check if user still exists
-  const currentUser = await User.findById(decoded.id);
-  if (!currentUser) {
-    return next(
-      new AppError(
-        'The user belonging to this token does no longer exist.',
-        401
-      )
-    );
-  }
-
-  // 4) Check if user changed password after the token was issued
-  if (currentUser.changedPasswordAfter(decoded.iat)) {
-    return next(
-      new AppError('User recently changed password! Please log in again.', 401)
-    );
-  }
-
-  // GRANT ACCESS TO PROTECTED ROUTE
-  req.user = currentUser;
-  next();
 });

@@ -1,15 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-
+const cookieParser = require('cookie-parser');
+const errorHandler = require('./middlewares/errorMiddleware');
 const userRouter = require('./routes/userRoutes');
-const AppError = require('./utils/appError');
-const connectToDB = require('./services/connectToDB');
+const connectToDB = require('./config/connectToDB');
 connectToDB();
 
 const app = express();
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json()); // middleware to parse body (req.body)
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to Express Server</h1>');
@@ -18,7 +19,7 @@ app.get('/', (req, res) => {
 app.use('/users', userRouter);
 
 app.all('*', (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  next(new Error(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 const PORT = process.env.PORT || 5000;

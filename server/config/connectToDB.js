@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const keys = require('../config/keys');
+const keys = require('./keys');
 
 const connectionString = keys.CONNECTION_STRING_MD;
 
@@ -10,7 +10,8 @@ const connectToDB = async () => {
     });
     console.log('Connected to Mongodb Atlas');
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
+    process.exit(1);
   }
 };
 

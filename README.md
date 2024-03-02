@@ -9,11 +9,13 @@ client directory contains React Program, server directory contains express serve
 Runs the app in the development mode.\
 Open [http://localhost:5000](http://localhost:5000) to view it in your browser.
 
-The page will reload when you make changes, nodemon is used as development dependency.
-
 ### Packages
 
-nodemon:
+nodemon: development dependency that restart sever application as file changes
+mongoose: helper library to work with mongoDB easily
+bcrypt: to hash the password(avoiding plain text)
+cors: middleware which enables server to determine which domains can access its resources
+jsonwebtoken: package to authenticate and authorize users using digitally signed token(securely)
 
 ## Client Scripts
 
@@ -22,4 +24,4 @@ nodemon:
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.
+### Packages
