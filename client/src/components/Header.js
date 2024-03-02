@@ -16,7 +16,7 @@ const Header = () => {
     content = <h1>Waiting...</h1>;
   } else if (status === 'succeeded') {
     console.log('auth _id', auth._id);
-    console.log('auth googleID', auth.googleID);
+    console.log('auth userId', auth._id);
     if (auth) {
       content = `<h1>User Logged In</h1>`;
     } else {
