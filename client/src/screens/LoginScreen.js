@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Form, Button, Row, Col } from 'react-bootstrap';
 import FormContainer from '../components/FormContainer';
-import { LinkContainer } from 'react-router-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLoginMutation } from '../features/usersApi/usersApiSlice';
 import { setCredentials } from '../features/auth/authSlice';
+import Loader from '../components/Loader';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [login, { isLoading }] = useLoginMutation();
 
@@ -29,9 +29,9 @@ const LoginScreen = () => {
     try {
       const res = await login({ email, password }).unwrap();
       dispatch(setCredentials({ ...res }));
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
-      console.error(err.data.message || err.error);
+      alert(err?.data?.message || err.error);
     }
   };
 
@@ -59,21 +59,22 @@ const LoginScreen = () => {
             onChange={(e) => setPassword(e.target.value)}
           ></Form.Control>
         </Form.Group>
-        <LinkContainer to='/login'>
-          <Button type='submit' variant='secondary' className='mt-3'>
-            Sign In
-          </Button>
-        </LinkContainer>
+
+        <Button
+          disabled={isLoading}
+          type='submit'
+          variant='primary'
+          className='mt-3'
+        >
+          Sign In
+        </Button>
       </Form>
+
+      {isLoading && <Loader />}
 
       <Row className='py-3'>
         <Col>
-          Don't have Account
-          <LinkContainer to='/signup'>
-            <Button type='submit' variant='secondary' className='mt-3'>
-              Sign Up
-            </Button>
-          </LinkContainer>
+          Don't Have Account &nbsp;<Link to='/register'>Sign Up</Link>
         </Col>
       </Row>
     </FormContainer>

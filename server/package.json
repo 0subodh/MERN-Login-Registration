@@ -4,7 +4,7 @@
   "description": "basic express server to implement client authorization",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
+    "dev": "nodemon index.js --ignore client",
     "start": "node index.js"
   },
   "author": "Subodh Adhikari",

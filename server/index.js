@@ -1,11 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const errorHandler = require('./middlewares/errorMiddleware');
 const userRouter = require('./routes/userRoutes');
 const connectToDB = require('./config/connectToDB');
 connectToDB();
-
 const app = express();
 
 app.use(cors());
@@ -18,8 +16,16 @@ app.get('/', (req, res) => {
 
 app.use('/users', userRouter);
 
-app.all('*', (req, res, next) => {
-  next(new Error(`Can't find ${req.originalUrl} on this server!`, 404));
+app.use('*', (req, res, next) => {
+  const error = new Error(`Not Found - ${req.originalUrl}`);
+  res.status(404);
+  next(error);
+});
+
+app.use((err, req, res, next) => {
+  res.locals.error = err;
+  res.status(err.status);
+  res.render('error');
 });
 
 const PORT = process.env.PORT || 5000;
