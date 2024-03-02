@@ -1,82 +1,30 @@
-import { useSelector } from 'react-redux';
-import {
-  selectAuth,
-  getAuthError,
-  getAuthStatus,
-} from '../features/auth/authSlice';
+import { Navbar, Nav, Container } from 'react-bootstrap';
+import { LinkContainer } from 'react-router-bootstrap';
 
 const Header = () => {
-  const auth = useSelector(selectAuth);
-  const status = useSelector(getAuthStatus);
-  const error = useSelector(getAuthError);
+  return (
+    <header>
+      <Navbar expand='lg' collapseOnSelect>
+        <Container>
+          <LinkContainer to='/'>
+            <Navbar.Brand>MERN Authentication</Navbar.Brand>
+          </LinkContainer>
 
-  let content;
-
-  if (status === 'loading') {
-    content = <h1>Waiting...</h1>;
-  } else if (status === 'succeeded') {
-    console.log('auth _id', auth._id);
-    console.log('auth userId', auth._id);
-    if (auth) {
-      content = `<h1>User Logged In</h1>`;
-    } else {
-      content = `<h1>User Not Logged In</h1>`;
-    }
-  } else if (status === 'failed') {
-    content = (
-      <>
-        <h1>User not found</h1>
-        <p>{error}</p>
-      </>
-    );
-  }
-
-  return <div>{auth ? <UserLoggedIn /> : <UserNotLoggedIn />}</div>;
+          <Navbar.Toggle aria-controls='basic-navbar-nav' />
+          <Navbar.Collapse id='basic-navbar-nav'>
+            <Nav className='ms-auto'>
+              <LinkContainer to='/login'>
+                <Nav.Link>Sign In</Nav.Link>
+              </LinkContainer>
+              <LinkContainer to='/signup'>
+                <Nav.Link>Sign Up</Nav.Link>
+              </LinkContainer>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+    </header>
+  );
 };
 
 export default Header;
-
-function UserLoggedIn() {
-  return (
-    <nav className='navbar bg-body-tertiary'>
-      <div className='container-fluid'>
-        <button type='button' className='btn btn-secondary btn-lg'>
-          MERN
-        </button>
-        <h1 style={{ alignItems: 'center' }}>You are Logged In</h1>
-        <form className='d-flex' role='search'>
-          <button type='button' className='btn btn-primary btn-lg'>
-            <a
-              href='http://localhost:5000/users/logout'
-              style={{ textDecoration: 'none', color: 'whitesmoke' }}
-            >
-              Logout
-            </a>
-          </button>
-        </form>
-      </div>
-    </nav>
-  );
-}
-
-function UserNotLoggedIn() {
-  return (
-    <nav className='navbar bg-body-tertiary'>
-      <div className='container-fluid'>
-        <button type='button' className='btn btn-secondary btn-lg'>
-          MERN
-        </button>
-        <form className='d-flex' role='search'>
-          <button type='button' className='btn btn-primary btn-lg'>
-            <a
-              href='http://localhost:5000/users/login'
-              style={{ textDecoration: 'none', color: 'whitesmoke' }}
-            >
-              Login
-            </a>
-          </button>
-        </form>
-      </div>
-    </nav>
-  );
-}

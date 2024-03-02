@@ -1,38 +1,26 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice } from '@reduxjs/toolkit';
 
-const AUTH_URL = '/users';
-
-const initialState = { value: {}, status: 'idle', error: '' };
-
-export const fetchAuth = createAsyncThunk('auth/fetchAuth', async () => {
-  const response = await axios.get(AUTH_URL);
-  return response?.data;
-});
+const initialState = {
+  userInfo: localStorage.getItem('userInfo')
+    ? JSON.parse(localStorage.getItem('userInfo'))
+    : null,
+};
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
-  extraReducers(builder) {
-    builder
-      .addCase(fetchAuth.pending, (state, action) => {
-        state.status = 'loading';
-      })
-      .addCase(fetchAuth.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        console.log('async reducer ran');
-        console.log(action.payload);
-        state.value = action.payload;
-      })
-      .addCase(fetchAuth.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.error.message;
-      });
+  reducers: {
+    setCredentials: (state, action) => {
+      state.userInfo = action.payload;
+      localStorage.setItem('userInfo', JSON.stringify(action.payload));
+    },
+    logOut: (state, action) => {
+      state.userInfo = null;
+      localStorage.removeItem('userInfo');
+    },
   },
 });
 
-export const selectAuth = (state) => state.auth.value;
-export const getAuthError = (state) => state.auth.error;
-export const getAuthStatus = (state) => state.auth.status;
+export const { setCredentials, logOut } = authSlice.actions;
+
 export default authSlice.reducer;
